@@ -70,13 +70,18 @@ def setKeyState(key,state):
 	else:
 		winKey(key,state)
 
+def setStickValue(stick,value):
+
+	pass
+
 def getSerialConnection():
+	device_list = []
 	if os.name == 'posix':
-		nonlocal device_list
-		possible_device_list = ["/dev/ttyUSB{0}".format(i) for i in range(0,4)]
+		# nonlocal device_list
+		possible_device_list = ["/dev/ttyUSB{0}".format(i) for i in range(0,4)]+["/dev/rfcomm0"]
 		device_list = list(filter(os.path.exists,possible_device_list))
-	else
-		nonlocal device_list
+	else:
+		# nonlocal device_list
 		device_list = ["COM3","COM5"]
 
 	print(device_list)
@@ -110,20 +115,32 @@ def main():
 			if len(line) > 0:
 				print(line)
 				keynum = line[0] - ord('a')
-				keystate = 0
-				if line[1] == ord('h'):
-					keystate = 1
-				# FEZ keymap
-				keymap = [
-					'up','right','down','left',
-					'lshift','l','space','j',
-					'esc','backspace','lctrl','enter',
-					'lalt','a','d','ralt']
 
-				if keynum in range(0,16):
-					setKeyState(keymap[keynum],keystate)
-				else:
-					print("some invalid keycode")
+				if line[0] != ord('s'):
+					keystate = 0
+					if line[1] == ord('h'):
+						keystate = 1
+					# FEZ keymap
+					keymap = [
+						'up','right','down','left',
+						'lshift','l','space','j',
+						'esc','backspace','lctrl','enter',
+						'lalt','a','d','ralt']
+
+					if keynum in range(0,16):
+						setKeyState(keymap[keynum],keystate)
+					else:
+						print("some invalid keycode")
+				else: # we have a stick motion
+					high = 750
+					mid = 500
+					low = 250
+
+					stickid = line[1] - ord('a')
+					rval = int(line[2:])
+					val = (rval-low)/(high-low)
+					print(stickid,val)
+
 
 		print("Serial port closed")
 		device.close()
